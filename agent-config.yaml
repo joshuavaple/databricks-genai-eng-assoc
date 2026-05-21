@@ -1,0 +1,4 @@
+llm_endpoint_name: databricks-qwen35-122b-a10b
+vector_search:
+  index_name: workspace.feature_model.docs_chunked_index
+  num_results: 3
