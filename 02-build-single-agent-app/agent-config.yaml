@@ -1,0 +1,6 @@
+llm_endpoint: "databricks-gpt-oss-120b"
+llm_temperature: 0.1
+system_prompt: "You are a helpful assistant. Make sure to use tools for additional functionality"
+function_names:
+    - "workspace.bronze.avg_neigh_price"
+    - "workspace.bronze.cnt_by_room_type"
