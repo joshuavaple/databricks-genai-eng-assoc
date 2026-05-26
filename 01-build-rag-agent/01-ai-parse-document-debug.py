@@ -1,7 +1,14 @@
 # Databricks notebook source
 # MAGIC %md
+# MAGIC ## Requirements
+
+# COMMAND ----------
+
+# MAGIC %md
 # MAGIC - Source: https://docs.databricks.com/aws/en/sql/language-manual/functions/ai_parse_document
 # MAGIC - Use serverless v4 or above
+# MAGIC - Input file in `data/` uploaded to the specified volume path.
+# MAGIC - Output directory for OCR images is created in volume
 
 # COMMAND ----------
 
@@ -30,7 +37,7 @@ print(dbutils.widgets.getAll())
 # COMMAND ----------
 
 # DBTITLE 1,Configuration parameters
-# Path configuration
+# Path configuration - Change to your own volume path
 source_files = f"/Volumes/{catalog}/{schema}/{volume}/input/"
 image_output_path = f"/Volumes/{catalog}/{schema}/{volume}/output/"
 
