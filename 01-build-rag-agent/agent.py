@@ -18,43 +18,40 @@ def _load_config(path: str = "agent-config.yaml") -> Dict[str, Any]:
         raise FileNotFoundError(f"Config file not found at: {path}")
     with open(path, "r", encoding="utf-8") as f:
         cfg = yaml.safe_load(f) or {}
-    llm_endpoint = cfg.get("llm_endpoint_name")
+    llm_endpoint = cfg.get("llm_endpoint")
     vs = cfg.get("vector_search", {}) or {}
     index_name = vs.get("index_name")
     num_results = int(vs.get("num_results", 3))
+    system_prompt = cfg.get("system_prompt")
     return {
-        "llm_endpoint_name": llm_endpoint,
+        "llm_endpoint": llm_endpoint,
         "index_name": index_name,
-        "num_results": num_results
+        "num_results": num_results,
+        "system_prompt": system_prompt
     }
 
 
 # build LangChain agent with the config above:
 # this is the same code as the smoke test above
-def build_agent(llm_endpoint: str, index_name: str, num_results: int = 3):
+def build_agent(
+    llm_endpoint: str, index_name: str, num_results: int = 3, system_prompt: str = ""
+):
     # init the model with OpenAI standard I/O schemas
     model = ChatDatabricks(endpoint=llm_endpoint, max_tokens=500)
 
-    # define the vector search tool
     vs_tool = VectorSearchRetrieverTool(
         name="imda_llm_testing_knowledge_search",
         index_name=index_name,
         description="Search the IMDA's document `Starter Kit for Testing LLM-Based Applications for Safety and Reliability` for relevant information on testing LLM-based applications.",
-        num_results=num_results
+        num_results=num_results,
     )
+    tools = [vs_tool]
 
     # Optional: use an in-memory saver to save the agent's state
     checkpointer = InMemorySaver()
 
-    system_prompt = """
-    You are the knowledge assistant for Singapore's Infocomm Media Development Authority (IMDA), specialized on  testing LLM-based applications for safety and reliability. Respond in a clear, professional, and factual tone appropriate for developers. Use only verified information from the internal documents, and include source references when available. If the answer cannot be found, clearly state that, and suggest related sections or next steps. Do not speculate, make assumptions, or provide informaiton outside of the provided context.
-    """
-
     agent = create_agent(
-        model=model,
-        tools=[vs_tool],
-        system_prompt=system_prompt,
-        checkpointer=checkpointer
+        model=model, tools=tools, system_prompt=system_prompt, checkpointer=checkpointer
     )
     return agent
 
@@ -64,7 +61,7 @@ class LangChainResponsesAgent(ResponsesAgent):
         cfg = _load_config()
         self._cfg = cfg
         self._agent = build_agent(
-            llm_endpoint=cfg["llm_endpoint_name"],
+            llm_endpoint=cfg["llm_endpoint"],
             index_name=cfg["index_name"],
             num_results=cfg["num_results"]
         )
@@ -93,4 +90,3 @@ class LangChainResponsesAgent(ResponsesAgent):
 # get the model obj for mlflow:
 AGENT = LangChainResponsesAgent()
 mlflow.models.set_model(AGENT)
-
